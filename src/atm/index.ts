@@ -34,18 +34,15 @@ const login = (data: Array<UserData>, commandObject: string) => {
   }
 };
 
-const logout = (commandObject: string) => {
-  if (
-    currentUserData.name.length === 0 ||
-    commandObject !== currentUserData.name
-  ) {
+const logout = () => {
+  if (currentUserData.name.length === 0) {
     console.log(errorColor(`(!) You have not logged in yet`));
   } else {
+    console.log(botColor(`Goodbye, ${currentUserData.name}!`));
     currentUserData = {
       name: "",
       balance: 0,
     };
-    console.log(botColor(`Goodbye, ${commandObject}!`));
   }
 };
 
@@ -82,7 +79,7 @@ const ATMProject = async () => {
         ATMProject();
         break;
       case "logout":
-        logout(obj);
+        logout();
         ATMProject();
         break;
       default:
