@@ -1,0 +1,23 @@
+{
+  "name": "dkatalis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuaditrockz/dkatalis.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fuaditrockz/dkatalis/issues"
+  },
+  "homepage": "https://github.com/fuaditrockz/dkatalis#readme",
+  "dependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
