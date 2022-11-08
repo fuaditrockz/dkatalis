@@ -50,19 +50,19 @@ export const login = ({
   }
 };
 
-const logout = () => {
-  console.log(botColor(`Goodbye, ${currentUserData.name}!`));
+export const logout = (currentLoggedUser: UserData) => {
+  console.log(botColor(`Goodbye, ${currentLoggedUser.name}!`));
   currentUserData = {
     name: "",
     balance: 0,
   };
 };
 
-const deposit = (totalDeposit: string) => {
+export const deposit = (currentLoggedUser: UserData, totalDeposit: string) => {
   const modifyObject = totalDeposit.replace(/\$/g, "");
   const toNumber = parseInt(modifyObject);
-  currentUserData.balance += toNumber;
-  console.log(botColor(`Your balance is $${currentUserData.balance}`));
+  currentLoggedUser.balance += toNumber;
+  console.log(botColor(`Your balance is $${currentLoggedUser.balance}`));
 };
 
 const transfer = (commandObject: string) => {
@@ -75,7 +75,7 @@ const transfer = (commandObject: string) => {
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
   } else {
-    if (currentUserData.balance > totalTransferToNumber) {
+    if (currentUserData.balance >= totalTransferToNumber) {
       const newArr = customerData.map((customer) => {
         // 👇️ add recipient balance
         if (customer.name === recipientName) {
@@ -126,10 +126,10 @@ const ATMProject = async () => {
           console.log(errorColor(`(!) You need to log out first`));
           break;
         case Command.deposit:
-          deposit(obj);
+          deposit(currentUserData, obj);
           break;
         case Command.logout:
-          logout();
+          logout(currentUserData);
           break;
         case Command.transfer:
           transfer(obj);
