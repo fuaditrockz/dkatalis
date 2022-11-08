@@ -65,18 +65,26 @@ export const deposit = (currentLoggedUser: UserData, totalDeposit: string) => {
   console.log(botColor(`Your balance is $${currentLoggedUser.balance}`));
 };
 
-const transfer = (commandObject: string) => {
+export const transfer = ({
+  data,
+  currentLoggedUser,
+  commandObject,
+}: {
+  data: Array<UserData>;
+  currentLoggedUser: UserData;
+  commandObject: string;
+}) => {
   const recipientName = commandObject.split(" ")[0];
   const totalTransfer = commandObject.replace(recipientName, "").trimStart();
   const modifyObject = totalTransfer.replace(/\$/g, "");
   const totalTransferToNumber = parseInt(modifyObject);
 
-  const foundData = customerData.find((d) => d.name === recipientName);
+  const foundData = data.find((d) => d.name === recipientName);
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
   } else {
-    if (currentUserData.balance >= totalTransferToNumber) {
-      const newArr = customerData.map((customer) => {
+    if (currentLoggedUser.balance >= totalTransferToNumber) {
+      const newArr = data.map((customer) => {
         // 👇️ add recipient balance
         if (customer.name === recipientName) {
           const currentBalance = customer.balance;
@@ -86,7 +94,7 @@ const transfer = (commandObject: string) => {
           };
         }
         // 👇️ reduce customer balance
-        if (customer.name === currentUserData.name) {
+        if (customer.name === currentLoggedUser.name) {
           const currentBalance = customer.balance;
           const newCustomerData = {
             ...customer,
@@ -101,7 +109,6 @@ const transfer = (commandObject: string) => {
       console.log(
         botColor(`Transferred $${totalTransferToNumber} to ${recipientName}`)
       );
-      console.log(botColor(`Your balance $${currentUserData.balance}`));
     } else {
       console.log(errorColor(`(!) Your balance not enough to transfer`));
     }
@@ -132,7 +139,11 @@ const ATMProject = async () => {
           logout(currentUserData);
           break;
         case Command.transfer:
-          transfer(obj);
+          transfer({
+            data: customerData,
+            currentLoggedUser: currentUserData,
+            commandObject: obj,
+          });
           break;
         case Command.withdraw:
           console.log(botColor(`Withdraw`));
