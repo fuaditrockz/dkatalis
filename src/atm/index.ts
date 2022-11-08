@@ -1,26 +1,42 @@
-import { questionColor, errorColor, botColor } from "../helpers/colors";
-import rlInterface, { createQuestion } from "../helpers/rlInterface";
+import { errorColor, botColor } from "../helpers/colors";
+import { createQuestion } from "../helpers/rlInterface";
 
 type UserData = {
   name: string;
   balance: number;
 };
 
-let ATMdata: Array<UserData> = [];
+enum Command {
+  login = "login",
+  logout = "logout",
+  deposit = "deposit",
+  transfer = "transfer",
+  withdraw = "withdraw",
+}
+
+let customerData: Array<UserData> = [];
 let currentUserData: UserData = {
   name: "",
   balance: 0,
 };
 
-const login = (commandObject: string) => {
-  if (currentUserData.name.length === 0) {
-    const found = ATMdata.some((el) => el.name === commandObject);
+export const login = ({
+  data,
+  currentLoggedUser,
+  commandObject,
+}: {
+  data: Array<UserData>;
+  currentLoggedUser: UserData;
+  commandObject: string;
+}) => {
+  if (currentLoggedUser.name.length === 0) {
+    const found = data.some((el) => el.name === commandObject);
     if (!found) {
       const newUser: UserData = { name: commandObject, balance: 0 };
-      ATMdata.push(newUser);
+      customerData.push(newUser);
       currentUserData = newUser;
     } else {
-      const foundData = ATMdata.find((d) => d.name === commandObject);
+      const foundData = data.find((d) => d.name === commandObject);
       currentUserData = foundData || { name: "", balance: 0 };
     }
 
@@ -55,12 +71,12 @@ const transfer = (commandObject: string) => {
   const modifyObject = totalTransfer.replace(/\$/g, "");
   const totalTransferToNumber = parseInt(modifyObject);
 
-  const foundData = ATMdata.find((d) => d.name === recipientName);
+  const foundData = customerData.find((d) => d.name === recipientName);
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
   } else {
     if (currentUserData.balance > totalTransferToNumber) {
-      const newArr = ATMdata.map((customer) => {
+      const newArr = customerData.map((customer) => {
         // 👇️ add recipient balance
         if (customer.name === recipientName) {
           const currentBalance = customer.balance;
@@ -81,7 +97,7 @@ const transfer = (commandObject: string) => {
         }
         return customer;
       });
-      ATMdata = newArr;
+      customerData = newArr;
       console.log(
         botColor(`Transferred $${totalTransferToNumber} to ${recipientName}`)
       );
@@ -99,24 +115,27 @@ const typeResultByUser = () => {
 const ATMProject = async () => {
   try {
     const answered: any = await typeResultByUser();
-    let command: string;
+    let command: Command;
     let obj: string;
     command = answered.split(" ")[0];
     obj = answered.replace(command, "").trimStart();
 
     if (currentUserData.name.length !== 0) {
       switch (command) {
-        case "login":
+        case Command.login:
           console.log(errorColor(`(!) You need to log out first`));
           break;
-        case "deposit":
+        case Command.deposit:
           deposit(obj);
           break;
-        case "logout":
+        case Command.logout:
           logout();
           break;
-        case "transfer":
+        case Command.transfer:
           transfer(obj);
+          break;
+        case Command.withdraw:
+          console.log(botColor(`Withdraw`));
           break;
         default:
           console.log(errorColor(`(!) Command not found!`));
@@ -124,12 +143,16 @@ const ATMProject = async () => {
       }
     } else {
       if (command === "login") {
-        login(obj);
+        login({
+          data: customerData,
+          currentLoggedUser: currentUserData,
+          commandObject: obj,
+        });
       } else if (
-        command === "logout" ||
-        command === "deposit" ||
-        command === "transfer" ||
-        command === "withdraw"
+        command === Command.logout ||
+        command === Command.deposit ||
+        command === Command.transfer ||
+        command === Command.withdraw
       ) {
         console.log(errorColor(`(!) You have not logged in yet`));
       } else {
