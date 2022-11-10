@@ -1,15 +1,11 @@
-import { login, logout, deposit, transfer } from "../src/atm";
+import { login, logout, deposit, transfer, UserDataType } from "../src/atm";
 import { errorColor, botColor } from "../src/helpers/colors";
 
-type UserData = {
-  name: string;
-  balance: number;
-};
-
-let customerData: Array<UserData> = [];
-let currentUserData: UserData = {
+let customerData: Array<UserDataType> = [];
+let currentUserData: UserDataType = {
   name: "",
   balance: 0,
+  debts: [],
 };
 const userName1 = "Alice";
 const userName2 = "Robert";
@@ -31,10 +27,12 @@ describe("ATM Project", () => {
       customerData.push({
         name: userName1,
         balance: 0,
+        debts: [],
       });
       currentUserData = {
         name: userName1,
         balance: 0,
+        debts: [],
       };
       expect(customerData.length).toBe(1);
     });
@@ -60,9 +58,14 @@ describe("ATM Project", () => {
       currentUserData = {
         name: userName1,
         balance: parseInt(totalDeposit),
+        debts: [],
       };
       console.log = jest.fn();
-      deposit(currentUserData, totalDeposit);
+      deposit({
+        data: customerData,
+        currentLoggedUser: currentUserData,
+        totalDeposit,
+      });
       expect(console.log).toHaveBeenCalledWith(
         botColor(`Your balance is $${currentUserData.balance}`)
       );
@@ -76,6 +79,7 @@ describe("ATM Project", () => {
       currentUserData = {
         name: "",
         balance: 0,
+        debts: [],
       };
       expect(console.log).toHaveBeenCalledWith(
         botColor(`Goodbye, ${userName1}!`)
@@ -99,10 +103,12 @@ describe("ATM Project", () => {
       customerData.push({
         name: userName2,
         balance: 0,
+        debts: [],
       });
       currentUserData = {
         name: userName2,
         balance: 0,
+        debts: [],
       };
       expect(customerData.length).toBe(2);
     });
@@ -114,9 +120,14 @@ describe("ATM Project", () => {
       currentUserData = {
         name: userName2,
         balance: parseInt(totalDeposit),
+        debts: [],
       };
       console.log = jest.fn();
-      deposit(currentUserData, totalDeposit);
+      deposit({
+        data: customerData,
+        currentLoggedUser: currentUserData,
+        totalDeposit,
+      });
       expect(console.log).toHaveBeenCalledWith(
         botColor(`Your balance is $${currentUserData.balance}`)
       );
