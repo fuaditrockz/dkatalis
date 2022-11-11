@@ -1,6 +1,12 @@
-import { update } from "ramda";
-import { login, logout, deposit, transfer, UserDataType } from "../src/atm";
+import ATMProject, {
+  login,
+  logout,
+  deposit,
+  transfer,
+  UserDataType,
+} from "../src/atm";
 import { errorColor, botColor } from "../src/helpers/colors";
+
 const userName1 = "Alice";
 const userName2 = "Bob";
 

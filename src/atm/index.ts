@@ -1,5 +1,5 @@
-import { isNil, isEmpty } from "ramda";
-import { errorColor, botColor, questionColor } from "../helpers/colors";
+import { isNil } from "ramda";
+import { errorColor, botColor } from "../helpers/colors";
 import { createQuestion } from "../helpers/rlInterface";
 
 export type DebtsType = {
