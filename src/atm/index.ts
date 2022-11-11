@@ -37,7 +37,6 @@ export const login = ({
   currentLoggedUser: UserDataType;
   commandObject: string;
 }) => {
-  console.log(questionColor("──────────────────────────────────────────"));
   if (currentLoggedUser.name.length === 0) {
     const found = data.some((el) => el.name === commandObject);
     if (!found) {
@@ -61,18 +60,15 @@ export const login = ({
   } else {
     console.log(errorColor(`(!) You need to log out first`));
   }
-  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 export const logout = (currentLoggedUser: UserDataType) => {
-  console.log(questionColor("──────────────────────────────────────────"));
   console.log(botColor(`Goodbye, ${currentLoggedUser.name}!`));
   currentUserData = {
     name: "",
     balance: 0,
     debts: [],
   };
-  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 export const addUserBalance = ({
@@ -163,10 +159,8 @@ export const deposit = ({
       commandObject: `${findDebtorName} ${totalDeposit}`,
     });
   } else {
-    console.log(questionColor("──────────────────────────────────────────"));
     currentUserData = currentLoggedUser;
     console.log(botColor(`Your balance is $${currentUserData.balance}`));
-    console.log(questionColor("──────────────────────────────────────────"));
   }
 };
 
@@ -179,7 +173,6 @@ export const transfer = ({
   currentLoggedUser: UserDataType;
   commandObject: string;
 }) => {
-  console.log(questionColor("──────────────────────────────────────────"));
   const recipientName = commandObject.split(" ")[0];
   const totalTransfer = commandObject.replace(recipientName, "").trimStart();
   const modifyObject = totalTransfer.replace(/\$/g, "");
@@ -218,7 +211,6 @@ export const transfer = ({
       actualTransfer,
     });
   }
-  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 const typeResultByUser = () => {
