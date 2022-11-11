@@ -1,5 +1,5 @@
 import { isNil, isEmpty } from "ramda";
-import { errorColor, botColor } from "../helpers/colors";
+import { errorColor, botColor, questionColor } from "../helpers/colors";
 import { createQuestion } from "../helpers/rlInterface";
 
 export type DebtsType = {
@@ -37,6 +37,7 @@ export const login = ({
   currentLoggedUser: UserDataType;
   commandObject: string;
 }) => {
+  console.log(questionColor("──────────────────────────────────────────"));
   if (currentLoggedUser.name.length === 0) {
     const found = data.some((el) => el.name === commandObject);
     if (!found) {
@@ -60,15 +61,84 @@ export const login = ({
   } else {
     console.log(errorColor(`(!) You need to log out first`));
   }
+  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 export const logout = (currentLoggedUser: UserDataType) => {
+  console.log(questionColor("──────────────────────────────────────────"));
   console.log(botColor(`Goodbye, ${currentLoggedUser.name}!`));
   currentUserData = {
     name: "",
     balance: 0,
     debts: [],
   };
+  console.log(questionColor("──────────────────────────────────────────"));
+};
+
+export const addUserBalance = ({
+  data,
+  userName,
+  actualTransfer,
+}: {
+  data: Array<UserDataType>;
+  userName: string;
+  actualTransfer: number;
+}) => {
+  const newCustomerData = data.map((customer) => {
+    if (userName === customer.name) {
+      return {
+        ...customer,
+        balance: customer.balance + actualTransfer,
+      };
+    }
+    return customer;
+  });
+  customerData = newCustomerData;
+};
+
+export const reduceUserBalance = ({
+  data,
+  userName,
+  actualTransfer,
+  expectedTransfer,
+  recipientName,
+  isBalanceNotEnough,
+}: {
+  data: Array<UserDataType>;
+  userName: string;
+  actualTransfer: number;
+  expectedTransfer: number;
+  recipientName: string;
+  isBalanceNotEnough: boolean;
+}) => {
+  const newCustomerData = data.map((customer) => {
+    if (userName === customer.name) {
+      isBalanceNotEnough &&
+        console.log(
+          botColor(
+            `Owed $${expectedTransfer - actualTransfer} to ${recipientName}`
+          )
+        );
+      console.log("isBalanceNotEnough", isBalanceNotEnough);
+      const newUserData = {
+        ...customer,
+        balance: isBalanceNotEnough ? 0 : customer.balance - actualTransfer,
+        debts: isBalanceNotEnough
+          ? [
+              {
+                name: recipientName,
+                totalOwed: expectedTransfer - actualTransfer,
+              },
+            ]
+          : [],
+      };
+      currentUserData = newUserData;
+      console.log("update user debts in customer Data", newUserData.debts);
+      return newUserData;
+    }
+    return customer;
+  });
+  customerData = newCustomerData;
 };
 
 export const deposit = ({
@@ -80,14 +150,16 @@ export const deposit = ({
   currentLoggedUser: UserDataType;
   totalDeposit: string;
 }) => {
+  console.log(questionColor("──────────────────────────────────────────"));
   let newArr: Array<UserDataType>;
-  const isHaveDebt = currentLoggedUser.debts?.some((e) => e.totalOwed !== 0);
+  const isWillHaveDebt = currentLoggedUser.debts?.some(
+    (e) => e.totalOwed !== 0
+  );
   const modifyObject = totalDeposit.replace(/\$/g, "");
   const totalDepositToNumber = parseInt(modifyObject);
   currentLoggedUser.balance += totalDepositToNumber;
 
-  console.log(isHaveDebt);
-  if (isHaveDebt && !isNil(currentLoggedUser.debts)) {
+  if (isWillHaveDebt && !isNil(currentLoggedUser.debts)) {
     const findDebtorName = currentLoggedUser.debts[0].name;
     transfer({
       data,
@@ -98,6 +170,7 @@ export const deposit = ({
     currentUserData = currentLoggedUser;
     console.log(botColor(`Your balance is $${currentUserData.balance}`));
   }
+  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 export const transfer = ({
@@ -109,83 +182,52 @@ export const transfer = ({
   currentLoggedUser: UserDataType;
   commandObject: string;
 }) => {
-  let newArr: Array<UserDataType>;
+  console.log(questionColor("──────────────────────────────────────────"));
   const recipientName = commandObject.split(" ")[0];
   const totalTransfer = commandObject.replace(recipientName, "").trimStart();
   const modifyObject = totalTransfer.replace(/\$/g, "");
-  const totalTransferToNumber = parseInt(modifyObject);
-  const isExistingDebt = !isEmpty(currentLoggedUser.debts);
-  const isHaveDebt = currentLoggedUser.balance < totalTransferToNumber;
-  const actualTransfer = isHaveDebt
-    ? currentLoggedUser.balance
-    : totalTransferToNumber;
+  const totalDebts = currentLoggedUser.debts.reduce(
+    (partialSum, a) => partialSum + a.totalOwed,
+    0
+  );
+  const totalTransferToNumber =
+    totalDebts > 0 ? totalDebts : parseInt(modifyObject);
+
+  const actualTransfer =
+    currentLoggedUser.debts.length === 0 &&
+    currentLoggedUser.balance > totalTransferToNumber
+      ? totalTransferToNumber
+      : currentLoggedUser.balance > totalDebts &&
+        currentLoggedUser.debts.length !== 0
+      ? totalDebts
+      : currentLoggedUser.balance;
+
+  console.log("actualTransfer", actualTransfer);
+  console.log("totalTransferToNumber", totalTransferToNumber);
+  console.log("currentLoggedUser.balance", currentLoggedUser.balance);
+  console.log("length", currentLoggedUser.debts.length);
 
   const foundData = data.find((d) => d.name === recipientName);
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
   } else {
-    newArr = data.map((customer) => {
-      const isRecipient = customer.name === recipientName;
-      const isSender = customer.name === currentLoggedUser.name;
-      const { balance: currentBalance } = customer;
-
-      // 👇️ add recipient balance
-      if (isRecipient) {
-        console.log(
-          botColor(`Transferred $${actualTransfer} to ${customer.name}`)
-        );
-        return {
-          ...customer,
-          balance: currentBalance + actualTransfer,
-        };
-      }
-      // 👇️ reduce customer balance
-      if (isSender) {
-        let newCustomerData: UserDataType;
-        const actualBalance = !isExistingDebt
-          ? currentBalance - totalTransferToNumber
-          : currentBalance -
-            currentLoggedUser.debts.reduce(
-              (partialSum, a) => partialSum + a.totalOwed,
-              0
-            );
-        const isStillHaveDebt =
-          currentLoggedUser.debts.reduce(
-            (partialSum, a) => partialSum + a.totalOwed,
-            0
-          ) !== 0;
-        console.log(actualBalance);
-        console.log(
-          `isStilHveDebt: ${isStillHaveDebt}, isHaveDebt: ${isHaveDebt}`
-        );
-        newCustomerData = {
-          ...customer,
-          balance: isStillHaveDebt || isHaveDebt ? 0 : actualBalance,
-          debts:
-            isStillHaveDebt || (isHaveDebt && actualBalance !== 0)
-              ? [
-                  {
-                    name: recipientName,
-                    totalOwed: Math.abs(actualBalance),
-                  },
-                ]
-              : [],
-        };
-        console.log(botColor(`Your balance is $${newCustomerData.balance}`));
-        actualBalance !== 0
-          ? console.log(
-              botColor(`Owed $${Math.abs(actualBalance)} to ${recipientName}`)
-            )
-          : null;
-
-        currentUserData = newCustomerData;
-        return newCustomerData;
-      }
-      return customer;
+    console.log(botColor(`Transferred $${actualTransfer} to ${recipientName}`));
+    reduceUserBalance({
+      data: customerData,
+      userName: currentLoggedUser.name,
+      actualTransfer,
+      expectedTransfer: totalTransferToNumber,
+      recipientName,
+      isBalanceNotEnough: actualTransfer < totalTransferToNumber,
     });
-    customerData = newArr;
-    console.log(customerData, currentUserData.debts);
+    addUserBalance({
+      data: customerData,
+      userName: recipientName,
+      actualTransfer,
+    });
   }
+  console.log("data", customerData);
+  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 const typeResultByUser = () => {
