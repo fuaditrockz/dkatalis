@@ -119,7 +119,6 @@ export const reduceUserBalance = ({
             `Owed $${expectedTransfer - actualTransfer} to ${recipientName}`
           )
         );
-      console.log("isBalanceNotEnough", isBalanceNotEnough);
       const newUserData = {
         ...customer,
         balance: isBalanceNotEnough ? 0 : customer.balance - actualTransfer,
@@ -133,7 +132,6 @@ export const reduceUserBalance = ({
           : [],
       };
       currentUserData = newUserData;
-      console.log("update user debts in customer Data", newUserData.debts);
       return newUserData;
     }
     return customer;
@@ -150,8 +148,6 @@ export const deposit = ({
   currentLoggedUser: UserDataType;
   totalDeposit: string;
 }) => {
-  console.log(questionColor("──────────────────────────────────────────"));
-  let newArr: Array<UserDataType>;
   const isWillHaveDebt = currentLoggedUser.debts?.some(
     (e) => e.totalOwed !== 0
   );
@@ -167,10 +163,11 @@ export const deposit = ({
       commandObject: `${findDebtorName} ${totalDeposit}`,
     });
   } else {
+    console.log(questionColor("──────────────────────────────────────────"));
     currentUserData = currentLoggedUser;
     console.log(botColor(`Your balance is $${currentUserData.balance}`));
+    console.log(questionColor("──────────────────────────────────────────"));
   }
-  console.log(questionColor("──────────────────────────────────────────"));
 };
 
 export const transfer = ({
@@ -202,11 +199,6 @@ export const transfer = ({
       ? totalDebts
       : currentLoggedUser.balance;
 
-  console.log("actualTransfer", actualTransfer);
-  console.log("totalTransferToNumber", totalTransferToNumber);
-  console.log("currentLoggedUser.balance", currentLoggedUser.balance);
-  console.log("length", currentLoggedUser.debts.length);
-
   const foundData = data.find((d) => d.name === recipientName);
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
@@ -226,7 +218,6 @@ export const transfer = ({
       actualTransfer,
     });
   }
-  console.log("data", customerData);
   console.log(questionColor("──────────────────────────────────────────"));
 };
 
