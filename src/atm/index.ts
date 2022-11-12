@@ -21,7 +21,7 @@ enum Command {
   withdraw = "withdraw",
 }
 
-let customerData: Array<UserDataType> = [];
+let customersData: Array<UserDataType> = [];
 let currentUserData: UserDataType = {
   name: "",
   balance: 0,
@@ -32,28 +32,23 @@ const findIndex = (data: UserDataType[], name: string) => {
   return data.findIndex((customer) => customer.name == name);
 };
 
-const findUserWhoHaveDebt = (data: UserDataType[], debtorName: string) => {
+const foundUserWhoHaveDebt = (data: UserDataType[], debtorName: string) => {
   return data.find((customer) =>
     customer.debts.some((debtor) => debtor.name === debtorName)
   );
 };
 
 const findOwedFromData = (data: Array<UserDataType>, debtorName: string) => {
-  const nameOtherUserOwed = data
-    .filter((customer) =>
-      customer.debts.some((debtor) => debtor.name === debtorName)
-    )
-    .map((otherUser) => otherUser.name);
-  const totalDebtsFromOtherUser = data
-    .filter((customer) =>
-      customer.debts.some((debtor) => debtor.name === debtorName)
-    )
-    .map((otherUser) =>
-      otherUser.debts.reduce((partialSum, a) => partialSum + a.totalOwed, 0)
-    );
+  const getOtherUser = data.filter((customer) =>
+    customer.debts.some((debtor) => debtor.name === debtorName)
+  );
+  const name = getOtherUser.map((otherUser) => otherUser.name);
+  const totalDebt = getOtherUser.map((otherUser) =>
+    otherUser.debts.reduce((partialSum, a) => partialSum + a.totalOwed, 0)
+  );
   return {
-    name: nameOtherUserOwed[0],
-    totalOwed: totalDebtsFromOtherUser[0],
+    name: name[0],
+    totalOwed: totalDebt[0],
   };
 };
 
@@ -74,14 +69,14 @@ export const login = ({
         balance: 0,
         debts: [],
       };
-      customerData.push(newUser);
+      customersData.push(newUser);
       currentUserData = newUser;
     } else {
       const foundData = data.find((d) => d.name === commandObject);
       currentUserData = foundData || { name: "", balance: 0, debts: [] };
     }
 
-    const isOtherHaveDebtToThisUser = findUserWhoHaveDebt(data, commandObject);
+    const isOtherHaveDebtToThisUser = foundUserWhoHaveDebt(data, commandObject);
     const isHaveDebt = currentUserData?.debts.length !== 0;
     const totalDebts = currentUserData.debts.reduce(
       (partialSum, a) => partialSum + a.totalOwed,
@@ -143,15 +138,18 @@ export const reduceUserBalance = ({
 }) => {
   const objIndex = findIndex(data, userName);
   const remainingBalanceEnough = data[objIndex].balance - actualTransfer;
-  data[objIndex].balance = isBalanceNotEnough ? 0 : remainingBalanceEnough;
-  data[objIndex].debts = isBalanceNotEnough
-    ? [
-        {
-          name: recipientName,
-          totalOwed: expectedTransfer - actualTransfer,
-        },
-      ]
-    : [];
+  data[objIndex] = {
+    ...data[objIndex],
+    balance: isBalanceNotEnough ? 0 : remainingBalanceEnough,
+    debts: isBalanceNotEnough
+      ? [
+          {
+            name: recipientName,
+            totalOwed: expectedTransfer - actualTransfer,
+          },
+        ]
+      : [],
+  };
   return data[objIndex];
 };
 
@@ -164,15 +162,14 @@ export const deposit = ({
   currentLoggedUser: UserDataType;
   totalDeposit: string;
 }) => {
-  const isWillHaveDebt = currentLoggedUser.debts?.some(
-    (e) => e.totalOwed !== 0
-  );
+  const { debts } = currentLoggedUser;
+  const isWillHaveDebt = debts?.some((e) => e.totalOwed !== 0);
   const modifyObject = totalDeposit.replace(/\$/g, "");
   const totalDepositToNumber = parseInt(modifyObject);
   currentLoggedUser.balance += totalDepositToNumber;
 
-  if (isWillHaveDebt && !isNil(currentLoggedUser.debts)) {
-    const findDebtorName = currentLoggedUser.debts[0].name;
+  if (isWillHaveDebt && !isNil(debts)) {
+    const findDebtorName = debts[0].name;
     transfer({
       data,
       currentLoggedUser,
@@ -193,13 +190,16 @@ export const transfer = ({
   currentLoggedUser: UserDataType;
   commandObject: string;
 }) => {
-  let newCustomerData: UserDataType[];
+  const { debts, name: senderName, balance } = currentLoggedUser;
+
   const recipientName = commandObject.split(" ")[0];
   const totalTransfer = commandObject.replace(recipientName, "").trimStart();
   const modifyObject = totalTransfer.replace(/\$/g, "");
+
   const recipientObjIndex = findIndex(data, recipientName);
-  const senderObjIndex = findIndex(data, currentLoggedUser.name);
-  const totalDebts = currentLoggedUser.debts.reduce(
+  const senderObjIndex = findIndex(data, senderName);
+
+  const totalDebts = debts.reduce(
     (partialSum, a) => partialSum + a.totalOwed,
     0
   );
@@ -207,37 +207,30 @@ export const transfer = ({
     totalDebts > 0 ? totalDebts : parseInt(modifyObject);
 
   const actualTransfer =
-    currentLoggedUser.debts.length === 0 &&
-    currentLoggedUser.balance > totalTransferToNumber
+    debts.length === 0 && balance > totalTransferToNumber
       ? totalTransferToNumber
-      : currentLoggedUser.balance > totalDebts &&
-        currentLoggedUser.debts.length !== 0
+      : balance > totalDebts && debts.length !== 0
       ? totalDebts
-      : currentLoggedUser.balance;
+      : balance;
 
   const foundData = data.find((d) => d.name === recipientName);
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
   } else {
-    const isHaveDebtByOtherUser = findUserWhoHaveDebt(
-      data,
-      currentLoggedUser.name
-    );
+    const isHaveDebtByOtherUser = foundUserWhoHaveDebt(data, senderName);
     if (isHaveDebtByOtherUser) {
-      const actualBalance = currentLoggedUser.balance;
-      const otherDebtData = findOwedFromData(data, currentLoggedUser.name);
-      const remainingOwedFromOtherUser =
-        otherDebtData.totalOwed - totalTransferToNumber;
+      const { name: owedName, totalOwed } = findOwedFromData(data, senderName);
+      const remainingOwedFromOtherUser = totalOwed - totalTransferToNumber;
 
-      const otherUserIndex = findIndex(data, otherDebtData.name);
-      customerData[otherUserIndex].debts = [
+      const owedIndex = findIndex(data, owedName);
+      customersData[owedIndex].debts = [
         {
-          name: currentLoggedUser.name,
+          name: senderName,
           totalOwed: remainingOwedFromOtherUser,
         },
       ];
 
-      const consoleOutput = `Your balance is $${actualBalance}\nOwed $${remainingOwedFromOtherUser} from Bob`;
+      const consoleOutput = `Your balance is $${balance}\nOwed $${remainingOwedFromOtherUser} from Bob`;
       console.log(botColor(consoleOutput));
     } else {
       const isBalanceNotEnough = actualTransfer < totalTransferToNumber;
@@ -249,15 +242,15 @@ export const transfer = ({
       });
       data[senderObjIndex] = reduceUserBalance({
         data,
-        userName: currentLoggedUser.name,
+        userName: senderName,
         actualTransfer,
         expectedTransfer: totalTransferToNumber,
         recipientName,
         isBalanceNotEnough,
       });
 
-      customerData = data;
-      currentUserData = customerData[senderObjIndex];
+      customersData = data;
+      currentUserData = customersData[senderObjIndex];
 
       const consoleOutputHaveOwed = `\nOwed $${
         totalTransferToNumber - actualTransfer
@@ -289,7 +282,7 @@ const ATMProject = async () => {
           break;
         case Command.deposit:
           deposit({
-            data: customerData,
+            data: customersData,
             currentLoggedUser: currentUserData,
             totalDeposit: obj,
           });
@@ -299,7 +292,7 @@ const ATMProject = async () => {
           break;
         case Command.transfer:
           transfer({
-            data: customerData,
+            data: customersData,
             currentLoggedUser: currentUserData,
             commandObject: obj,
           });
@@ -314,7 +307,7 @@ const ATMProject = async () => {
     } else {
       if (command === "login") {
         login({
-          data: customerData,
+          data: customersData,
           currentLoggedUser: currentUserData,
           commandObject: obj,
         });
