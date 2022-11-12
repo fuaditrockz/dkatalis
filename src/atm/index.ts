@@ -28,6 +28,10 @@ let currentUserData: UserDataType = {
   debts: [],
 };
 
+const findIndex = (data: UserDataType[], name: string) => {
+  return data.findIndex((customer) => customer.name == name);
+};
+
 export const login = ({
   data,
   currentLoggedUser,
@@ -52,11 +56,35 @@ export const login = ({
       currentUserData = foundData || { name: "", balance: 0, debts: [] };
     }
 
-    console.log(
-      botColor(
-        `Hello, ${currentUserData.name}! \nYour balance is $${currentUserData.balance}`
-      )
+    const isOtherHaveDebtToThisUser = data.find((customer) =>
+      customer.debts.some((debtor) => debtor.name === commandObject)
     );
+    const isHaveDebt = currentUserData?.debts.length !== 0;
+    const totalDebts = currentUserData.debts.reduce(
+      (partialSum, a) => partialSum + a.totalOwed,
+      0
+    );
+    const totalDebtsFromOtherUser = data
+      .filter((customer) =>
+        customer.debts.some((debtor) => debtor.name === commandObject)
+      )
+      .map((otherUser) =>
+        otherUser.debts.reduce((partialSum, a) => partialSum + a.totalOwed, 0)
+      );
+    const nameOtherUserOwed = data
+      .filter((customer) =>
+        customer.debts.some((debtor) => debtor.name === commandObject)
+      )
+      .map((otherUser) => otherUser.name);
+    const consoleOutputHaveOwed = isHaveDebt
+      ? `\nOwed $${totalDebts} to ${currentUserData.debts[0].name}`
+      : "";
+    const consoleOutputOtherHaveDebtToThisUser = isOtherHaveDebtToThisUser
+      ? `\nOwed $${totalDebtsFromOtherUser} from ${nameOtherUserOwed}`
+      : "";
+    const output = `Hello, ${currentUserData.name}! \nYour balance is $${currentUserData.balance}${consoleOutputHaveOwed}${consoleOutputOtherHaveDebtToThisUser}`;
+
+    console.log(botColor(output));
   } else {
     console.log(errorColor(`(!) You need to log out first`));
   }
@@ -80,16 +108,9 @@ export const addUserBalance = ({
   userName: string;
   actualTransfer: number;
 }) => {
-  const newCustomerData = data.map((customer) => {
-    if (userName === customer.name) {
-      return {
-        ...customer,
-        balance: customer.balance + actualTransfer,
-      };
-    }
-    return customer;
-  });
-  customerData = newCustomerData;
+  const objIndex = findIndex(data, userName);
+  data[objIndex].balance = data[objIndex].balance + actualTransfer;
+  return data[objIndex];
 };
 
 export const reduceUserBalance = ({
@@ -107,32 +128,18 @@ export const reduceUserBalance = ({
   recipientName: string;
   isBalanceNotEnough: boolean;
 }) => {
-  const newCustomerData = data.map((customer) => {
-    if (userName === customer.name) {
-      isBalanceNotEnough &&
-        console.log(
-          botColor(
-            `Owed $${expectedTransfer - actualTransfer} to ${recipientName}`
-          )
-        );
-      const newUserData = {
-        ...customer,
-        balance: isBalanceNotEnough ? 0 : customer.balance - actualTransfer,
-        debts: isBalanceNotEnough
-          ? [
-              {
-                name: recipientName,
-                totalOwed: expectedTransfer - actualTransfer,
-              },
-            ]
-          : [],
-      };
-      currentUserData = newUserData;
-      return newUserData;
-    }
-    return customer;
-  });
-  customerData = newCustomerData;
+  const objIndex = findIndex(data, userName);
+  const remainingBalanceEnough = data[objIndex].balance - actualTransfer;
+  data[objIndex].balance = isBalanceNotEnough ? 0 : remainingBalanceEnough;
+  data[objIndex].debts = isBalanceNotEnough
+    ? [
+        {
+          name: recipientName,
+          totalOwed: expectedTransfer - actualTransfer,
+        },
+      ]
+    : [];
+  return data[objIndex];
 };
 
 export const deposit = ({
@@ -173,6 +180,7 @@ export const transfer = ({
   currentLoggedUser: UserDataType;
   commandObject: string;
 }) => {
+  let newCustomerData: UserDataType[];
   const recipientName = commandObject.split(" ")[0];
   const totalTransfer = commandObject.replace(recipientName, "").trimStart();
   const modifyObject = totalTransfer.replace(/\$/g, "");
@@ -196,20 +204,34 @@ export const transfer = ({
   if (!foundData) {
     console.log(errorColor(`(!) ${recipientName} not found!`));
   } else {
-    console.log(botColor(`Transferred $${actualTransfer} to ${recipientName}`));
-    reduceUserBalance({
-      data: customerData,
-      userName: currentLoggedUser.name,
-      actualTransfer,
-      expectedTransfer: totalTransferToNumber,
-      recipientName,
-      isBalanceNotEnough: actualTransfer < totalTransferToNumber,
-    });
-    addUserBalance({
+    const isBalanceNotEnough = actualTransfer < totalTransferToNumber;
+    const recipientObjIndex = findIndex(data, recipientName);
+    const senderObjIndex = findIndex(data, currentLoggedUser.name);
+
+    data[recipientObjIndex] = addUserBalance({
       data: customerData,
       userName: recipientName,
       actualTransfer,
     });
+    data[senderObjIndex] = reduceUserBalance({
+      data,
+      userName: currentLoggedUser.name,
+      actualTransfer,
+      expectedTransfer: totalTransferToNumber,
+      recipientName,
+      isBalanceNotEnough,
+    });
+
+    customerData = data;
+    currentUserData = customerData[senderObjIndex];
+
+    const consoleOutputHaveOwed = `\nOwed $${
+      totalTransferToNumber - actualTransfer
+    } to ${recipientName}`;
+    const consoleOutput = `Transferred $${actualTransfer} to ${recipientName}\nYour balance is $${
+      currentUserData.balance
+    }${isBalanceNotEnough ? consoleOutputHaveOwed : ""}`;
+    console.log(botColor(consoleOutput));
   }
 };
 
