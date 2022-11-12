@@ -60,17 +60,15 @@ describe("$ deposit 100", () => {
 });
 
 describe("$ logout", () => {
-  afterEach(() => {
+  const output = "Goodbye, Alice!";
+  it(output, () => {
+    console.log = jest.fn();
+    logout(mockedCurrentUserData);
     mockedCurrentUserData = {
       name: "",
       balance: 0,
       debts: [],
     };
-  });
-  const output = "Goodbye, Alice!";
-  it(output, () => {
-    console.log = jest.fn();
-    logout(mockedCurrentUserData);
     expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
@@ -127,8 +125,7 @@ describe(`$ transfer Alice 50`, () => {
       (customer) => customer.name == "Alice"
     );
     mockedCustomerData[objIndexBob].balance = 30;
-    mockedCustomerData[objIndexAlice].balance =
-      mockedCustomerData[objIndexAlice].balance + 50;
+    mockedCustomerData[objIndexAlice].balance = 150;
   });
   const output = "Transferred $50 to Alice\nYour balance is $30";
   it(output, () => {
@@ -160,8 +157,7 @@ describe(`$ transfer Alice 100`, () => {
       name: "Alice",
       totalOwed: 70,
     });
-    mockedCustomerData[objIndexAlice].balance =
-      mockedCustomerData[objIndexAlice].balance + 30;
+    mockedCustomerData[objIndexAlice].balance = 180;
   });
   const output =
     "Transferred $30 to Alice\nYour balance is $0\nOwed $70 to Alice";
@@ -188,8 +184,7 @@ describe("$ deposit 30", () => {
     );
     mockedCustomerData[objIndexBob].balance = 0;
     mockedCustomerData[objIndexBob].debts[0].totalOwed = 40;
-    mockedCustomerData[objIndexAlice].balance =
-      mockedCustomerData[objIndexAlice].balance + 30;
+    mockedCustomerData[objIndexAlice].balance = 210;
   });
   const output =
     "Transferred $30 to Alice\nYour balance is $0\nOwed $40 to Alice";
@@ -240,7 +235,30 @@ describe("$ login Alice", () => {
 });
 
 describe(`$ transfer Bob 30`, () => {
-  afterEach(() => {});
+  beforeEach(() => {
+    mockedCurrentUserData.balance = 210;
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 0;
+    mockedCustomerData[objIndexBob].debts[0].totalOwed = 40;
+    mockedCustomerData[objIndexAlice].balance = 210;
+  });
+  afterEach(() => {
+    mockedCurrentUserData.balance = 210;
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 0;
+    mockedCustomerData[objIndexBob].debts[0].totalOwed = 10;
+    mockedCustomerData[objIndexAlice].balance = 210;
+  });
   const output = "Your balance is $210\nOwed $10 from Bob";
   it(output, () => {
     console.log = jest.fn();
@@ -270,13 +288,7 @@ describe("$ logout", () => {
 });
 
 describe("$ login Bob", () => {
-  afterEach(() => {
-    const objIndex = mockedCustomerData.findIndex(
-      (customer) => customer.name == "Bob"
-    );
-    mockedCurrentUserData = mockedCustomerData[objIndex];
-  });
-  const output = `Hello, Bob!\nYour balance is $0\nOwed $10 to Alice`;
+  const output = `Hello, Bob! \nYour balance is $0\nOwed $10 to Alice`;
   it(output, () => {
     console.log = jest.fn();
     login({
@@ -284,6 +296,20 @@ describe("$ login Bob", () => {
       currentLoggedUser: mockedCurrentUserData,
       commandObject: "Bob",
     });
+    mockedCurrentUserData = {
+      name: "Bob",
+      balance: 0,
+      debts: [
+        {
+          name: "Alice",
+          totalOwed: 10,
+        },
+      ],
+    };
+    const objIndex = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    mockedCustomerData[objIndex] = mockedCurrentUserData;
     expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
