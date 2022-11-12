@@ -237,8 +237,6 @@ export const transfer = ({
         },
       ];
 
-      console.log(customerData[otherUserIndex].debts);
-
       const consoleOutput = `Your balance is $${actualBalance}\nOwed $${remainingOwedFromOtherUser} from Bob`;
       console.log(botColor(consoleOutput));
     } else {
