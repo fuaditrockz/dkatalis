@@ -1,14 +1,5 @@
-import ATMProject, {
-  login,
-  logout,
-  deposit,
-  transfer,
-  UserDataType,
-} from "../src/atm";
+import { login, logout, deposit, transfer, UserDataType } from "../src/atm";
 import { errorColor, botColor } from "../src/helpers/colors";
-
-const userName1 = "Alice";
-const userName2 = "Bob";
 
 let mockedCustomerData: Array<UserDataType> = jest.mocked([]);
 let mockedCurrentUserData: UserDataType = jest.mocked({
@@ -17,65 +8,60 @@ let mockedCurrentUserData: UserDataType = jest.mocked({
   debts: [],
 });
 
-describe(`> ${userName1} success login`, () => {
-  test("Console output expected", () => {
-    console.log = jest.fn();
-    login({
-      data: mockedCustomerData,
-      currentLoggedUser: mockedCurrentUserData,
-      commandObject: userName1,
-    });
-    mockedCurrentUserData.name = userName1;
+beforeAll(() => {
+  mockedCustomerData = mockedCustomerData;
+  mockedCurrentUserData = mockedCurrentUserData;
+});
+
+afterAll(() => {
+  mockedCustomerData = mockedCustomerData;
+  mockedCurrentUserData = mockedCurrentUserData;
+});
+
+describe("$ login Alice", () => {
+  afterEach(() => {
+    mockedCurrentUserData.name = "Alice";
     mockedCustomerData.push({
-      name: userName1,
+      name: "Alice",
       balance: 0,
       debts: [],
     });
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Hello, ${mockedCurrentUserData.name}! \nYour balance is $0`)
-    );
   });
-  test("Customer data increase (expected total; 1)", () => {
-    expect(mockedCustomerData.length).toBe(1);
-  });
-});
-
-describe(`> ${userName1} failed login, because still logged in`, () => {
-  test("Console output expected", () => {
+  const output = `Hello, Alice! \nYour balance is $0`;
+  it(output, () => {
     console.log = jest.fn();
     login({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      commandObject: userName1,
+      commandObject: "Alice",
     });
-    expect(console.log).toHaveBeenCalledWith(
-      errorColor(`(!) You need to log out first`)
-    );
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
 
-describe(`> ${userName1} deposit $100`, () => {
-  test("Console output expected", () => {
-    const totalDeposit = "100";
+describe("$ deposit 100", () => {
+  afterEach(() => {
+    mockedCurrentUserData.balance = 100;
+    const objIndex = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndex].balance = 100;
+  });
+  const output = "Your balance is $100";
+  it(output, () => {
     console.log = jest.fn();
     deposit({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      totalDeposit,
+      totalDeposit: "100",
     });
-    mockedCurrentUserData = {
-      name: userName1,
-      balance: parseInt(totalDeposit),
-      debts: [],
-    };
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Your balance is $${mockedCurrentUserData.balance}`)
-    );
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
 
-describe(`> ${userName1} log out`, () => {
-  test("Console output expected", () => {
+describe("$ logout", () => {
+  const output = "Goodbye, Alice!";
+  it(output, () => {
     console.log = jest.fn();
     logout(mockedCurrentUserData);
     mockedCurrentUserData = {
@@ -83,146 +69,277 @@ describe(`> ${userName1} log out`, () => {
       balance: 0,
       debts: [],
     };
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Goodbye, ${userName1}!`)
-    );
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
 
-describe(`> ${userName2} log in`, () => {
-  test("Console output expected", () => {
+describe("$ login Bob", () => {
+  afterEach(() => {
+    mockedCurrentUserData.name = "Bob";
+    mockedCustomerData.push({
+      name: "Bob",
+      balance: 0,
+      debts: [],
+    });
+  });
+  const output = `Hello, Bob! \nYour balance is $0`;
+  it(output, () => {
     console.log = jest.fn();
     login({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      commandObject: userName2,
+      commandObject: "Bob",
     });
-    mockedCustomerData.push({
-      name: userName2,
-      balance: 0,
-      debts: [],
-    });
-    mockedCurrentUserData.name = userName2;
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Hello, ${userName2}! \nYour balance is $0`)
-    );
-  });
-  test("Customer data increase (expected total; 2)", () => {
-    expect(mockedCustomerData.length).toBe(2);
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
 
-describe(`> ${userName2} deposit $80`, () => {
-  test("Console output expected", () => {
-    const totalDeposit = 80;
+describe("$ deposit 80", () => {
+  afterEach(() => {
+    mockedCurrentUserData.balance = 80;
+    const objIndex = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    mockedCustomerData[objIndex].balance = 80;
+  });
+  const output = "Your balance is $80";
+  it(output, () => {
     console.log = jest.fn();
     deposit({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      totalDeposit: totalDeposit.toString(),
+      totalDeposit: "80",
     });
-    const updatedMockCustomerData = mockedCustomerData.map((customer) => {
-      if (customer.name === mockedCurrentUserData.name) {
-        const updateCurrentUserData = {
-          ...customer,
-          balance: customer.balance + totalDeposit,
-        };
-        mockedCurrentUserData = updateCurrentUserData;
-        return updateCurrentUserData;
-      }
-      return customer;
-    });
-    mockedCustomerData = updatedMockCustomerData;
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Your balance is $${totalDeposit}`)
-    );
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+    expect(mockedCurrentUserData.balance).toBe(80);
   });
 });
 
-describe(`> ${userName2} transfer to Alice $50`, () => {
-  const totalTransfer = 50;
-  test("Console output expected" + mockedCurrentUserData.name, () => {
+describe(`$ transfer Alice 50`, () => {
+  afterEach(() => {
+    mockedCurrentUserData.balance = 30;
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 30;
+    mockedCustomerData[objIndexAlice].balance = 150;
+  });
+  const output = "Transferred $50 to Alice\nYour balance is $30";
+  it(output, () => {
     console.log = jest.fn();
     transfer({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      commandObject: `${userName1} ${totalTransfer}`,
+      commandObject: `Alice $50`,
     });
-    const updatedMockCustomerData = mockedCustomerData.map((customer) => {
-      if (customer.name === userName1) {
-        return {
-          ...customer,
-          balance: customer.balance + totalTransfer,
-        };
-      }
-      if (customer.name === mockedCurrentUserData.name) {
-        const updateCurrentUserData = {
-          ...customer,
-          balance: customer.balance - totalTransfer,
-        };
-        mockedCurrentUserData = updateCurrentUserData;
-        return updateCurrentUserData;
-      }
-      return customer;
-    });
-    mockedCustomerData = updatedMockCustomerData;
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Transferred $${totalTransfer} to ${userName1}`)
-    );
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
-  test("Send to undefined account will be failed", () => {
-    const anonymousName = "Dodo";
+});
+
+describe(`$ transfer Alice 100`, () => {
+  afterEach(() => {
+    mockedCurrentUserData.balance = 0;
+    mockedCurrentUserData.debts.push({
+      name: "Alice",
+      totalOwed: 70,
+    });
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 0;
+    mockedCustomerData[objIndexBob].debts.push({
+      name: "Alice",
+      totalOwed: 70,
+    });
+    mockedCustomerData[objIndexAlice].balance = 180;
+  });
+  const output =
+    "Transferred $30 to Alice\nYour balance is $0\nOwed $70 to Alice";
+  it(output, () => {
     console.log = jest.fn();
     transfer({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      commandObject: `${anonymousName} ${totalTransfer}`,
+      commandObject: `Alice $100`,
     });
-    expect(console.log).toHaveBeenCalledWith(
-      errorColor(`(!) ${anonymousName} not found!`)
-    );
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
 
-describe(`> ${userName2} transfer to Alice $100 with not enough balance`, () => {
-  const totalTransfer = 100;
-  const actualTransfer = totalTransfer - mockedCurrentUserData.balance;
-  console.log = jest.fn();
-  test("Console output expected " + JSON.stringify(mockedCustomerData), () => {
+describe("$ deposit 30", () => {
+  afterEach(() => {
+    mockedCurrentUserData.balance = 0;
+    mockedCurrentUserData.debts[0].totalOwed = 40;
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 0;
+    mockedCustomerData[objIndexBob].debts[0].totalOwed = 40;
+    mockedCustomerData[objIndexAlice].balance = 210;
+  });
+  const output =
+    "Transferred $30 to Alice\nYour balance is $0\nOwed $40 to Alice";
+  it(output, () => {
+    console.log = jest.fn();
+    deposit({
+      data: mockedCustomerData,
+      currentLoggedUser: mockedCurrentUserData,
+      totalDeposit: "30",
+    });
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe("$ logout", () => {
+  afterEach(() => {
+    mockedCurrentUserData = {
+      name: "",
+      balance: 0,
+      debts: [],
+    };
+  });
+  const output = "Goodbye, Bob!";
+  it(output, () => {
+    console.log = jest.fn();
+    logout(mockedCurrentUserData);
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe("$ login Alice", () => {
+  afterEach(() => {
+    const objIndex = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCurrentUserData = mockedCustomerData[objIndex];
+  });
+  const output = `Hello, Alice! \nYour balance is $210\nOwed $40 from Bob`;
+  it(output, () => {
+    console.log = jest.fn();
+    login({
+      data: mockedCustomerData,
+      currentLoggedUser: mockedCurrentUserData,
+      commandObject: "Alice",
+    });
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe(`$ transfer Bob 30`, () => {
+  beforeEach(() => {
+    mockedCurrentUserData.balance = 210;
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 0;
+    mockedCustomerData[objIndexBob].debts[0].totalOwed = 40;
+    mockedCustomerData[objIndexAlice].balance = 210;
+  });
+  afterEach(() => {
+    mockedCurrentUserData.balance = 210;
+    const objIndexBob = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
+    );
+    const objIndexAlice = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Alice"
+    );
+    mockedCustomerData[objIndexBob].balance = 0;
+    mockedCustomerData[objIndexBob].debts[0].totalOwed = 10;
+    mockedCustomerData[objIndexAlice].balance = 210;
+  });
+  const output = "Your balance is $210\nOwed $10 from Bob";
+  it(output, () => {
+    console.log = jest.fn();
     transfer({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
-      commandObject: `${userName1} ${actualTransfer}`,
+      commandObject: `Bob $30`,
     });
-    const updatedMockCustomerData = mockedCustomerData.map((customer) => {
-      if (customer.name === userName1) {
-        return {
-          ...customer,
-          balance: customer.balance + totalTransfer,
-        };
-      }
-      if (customer.name === mockedCurrentUserData.name) {
-        const newCurrentUserData = {
-          ...customer,
-          balance: 0,
-          debts: [
-            {
-              name: userName1,
-              totalOwed: totalTransfer - actualTransfer,
-            },
-          ],
-        };
-        mockedCurrentUserData = newCurrentUserData;
-        return newCurrentUserData;
-      }
-      return customer;
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe("$ logout", () => {
+  afterEach(() => {
+    mockedCurrentUserData = {
+      name: "",
+      balance: 0,
+      debts: [],
+    };
+  });
+  const output = "Goodbye, Alice!";
+  it(output, () => {
+    console.log = jest.fn();
+    logout(mockedCurrentUserData);
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe("$ login Bob", () => {
+  const output = `Hello, Bob! \nYour balance is $0\nOwed $10 to Alice`;
+  it(output, () => {
+    console.log = jest.fn();
+    login({
+      data: mockedCustomerData,
+      currentLoggedUser: mockedCurrentUserData,
+      commandObject: "Bob",
     });
-    mockedCustomerData = updatedMockCustomerData;
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Transferred $${30} to ${userName1}`)
+    mockedCurrentUserData = {
+      name: "Bob",
+      balance: 0,
+      debts: [
+        {
+          name: "Alice",
+          totalOwed: 10,
+        },
+      ],
+    };
+    const objIndex = mockedCustomerData.findIndex(
+      (customer) => customer.name == "Bob"
     );
-    expect(console.log).toHaveBeenCalledWith(
-      botColor(`Owed $${70} to ${userName1}`)
-    );
+    mockedCustomerData[objIndex] = mockedCurrentUserData;
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe("$ deposit 100", () => {
+  afterEach(() => {});
+  const output = "Transferred $10 to Alice\nYour balance is $90";
+  it(output, () => {
+    console.log = jest.fn();
+    deposit({
+      data: mockedCustomerData,
+      currentLoggedUser: mockedCurrentUserData,
+      totalDeposit: "100",
+    });
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
+  });
+});
+
+describe("$ logout", () => {
+  afterEach(() => {
+    mockedCurrentUserData = {
+      name: "",
+      balance: 0,
+      debts: [],
+    };
+  });
+  const output = "Goodbye, Bob!";
+  it(output, () => {
+    console.log = jest.fn();
+    logout(mockedCurrentUserData);
+    expect(console.log).toHaveBeenCalledWith(botColor(output));
   });
 });
