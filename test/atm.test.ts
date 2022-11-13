@@ -1,4 +1,4 @@
-import { login, logout, deposit, transfer2, UserDataType } from "../src/atm";
+import { login, logout, deposit, transfer, UserDataType } from "../src/atm";
 import { errorColor, botColor } from "../src/helpers/colors";
 
 let mockedCustomerData: Array<UserDataType> = jest.mocked([]);
@@ -115,7 +115,7 @@ describe("$ deposit 80", () => {
   });
 });
 
-describe(`$ transfer2 Alice 50`, () => {
+describe(`$ transfer Alice 50`, () => {
   afterEach(() => {
     mockedCurrentUserData.balance = 30;
     const objIndexBob = mockedCustomerData.findIndex(
@@ -130,7 +130,7 @@ describe(`$ transfer2 Alice 50`, () => {
   const output = "Transferred $50 to Alice\nYour balance is $30";
   it(output, () => {
     console.log = jest.fn();
-    transfer2({
+    transfer({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
       commandObject: `Alice $50`,
@@ -139,7 +139,7 @@ describe(`$ transfer2 Alice 50`, () => {
   });
 });
 
-describe(`$ transfer2 Alice 100`, () => {
+describe(`$ transfer Alice 100`, () => {
   afterEach(() => {
     mockedCurrentUserData.balance = 0;
     mockedCurrentUserData.debts.push({
@@ -163,7 +163,7 @@ describe(`$ transfer2 Alice 100`, () => {
     "Transferred $30 to Alice\nYour balance is $0\nOwed $70 to Alice";
   it(output, () => {
     console.log = jest.fn();
-    transfer2({
+    transfer({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
       commandObject: `Alice $100`,
@@ -234,7 +234,7 @@ describe("$ login Alice", () => {
   });
 });
 
-describe(`$ transfer2 Bob 30`, () => {
+describe(`$ transfer Bob 30`, () => {
   beforeEach(() => {
     mockedCurrentUserData.balance = 210;
     const objIndexBob = mockedCustomerData.findIndex(
@@ -262,7 +262,7 @@ describe(`$ transfer2 Bob 30`, () => {
   const output = "Your balance is $210\nOwed $10 from Bob";
   it(output, () => {
     console.log = jest.fn();
-    transfer2({
+    transfer({
       data: mockedCustomerData,
       currentLoggedUser: mockedCurrentUserData,
       commandObject: `Bob $30`,

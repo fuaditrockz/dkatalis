@@ -109,7 +109,7 @@ export const deposit = ({
 
   if (isWillHaveDebt && !isNil(debts)) {
     const findDebtorName = debts[0].name;
-    transfer2({
+    transfer({
       data,
       currentLoggedUser,
       commandObject: `${findDebtorName} ${totalDeposit}`,
@@ -120,7 +120,7 @@ export const deposit = ({
   }
 };
 
-export const transfer2 = ({
+export const transfer = ({
   data,
   currentLoggedUser,
   commandObject,
@@ -317,7 +317,7 @@ const ATMProject = async () => {
           logout(currentUserData);
           break;
         case Command.transfer:
-          transfer2({
+          transfer({
             data: customersData,
             currentLoggedUser: currentUserData,
             commandObject: obj,
