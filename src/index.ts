@@ -2,6 +2,7 @@ import { questionColor, errorColor } from "./helpers/colors";
 import rlInterface, { createQuestion } from "./helpers/rlInterface";
 
 import ATMProject from "./atm";
+import PokerProject from "./poker";
 
 const dKatalisMiniProject = async () => {
   try {
@@ -12,8 +13,7 @@ const dKatalisMiniProject = async () => {
     if (answered === "ATM") {
       ATMProject();
     } else if (answered === "POKER") {
-      console.log("POKER");
-      return answered;
+      PokerProject();
     } else {
       answered.length === 0
         ? console.log(errorColor(`(!) Answer is required`))
