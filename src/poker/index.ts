@@ -1,6 +1,12 @@
 import { isEmpty, isNil } from "ramda";
 import { errorColor, botColor } from "../helpers/colors";
 import { createQuestion } from "../helpers/rlInterface";
+import {
+  formatHand,
+  findHandBySuit,
+  getSummaryOfHandBySuit,
+  isSorted,
+} from "./helpers";
 import fakerator from "fakerator";
 import _ from "lodash";
 
@@ -25,26 +31,24 @@ class RoyalFlush {
   }
 
   isRoyalFlush() {
-    console.log(this.cards);
-    const royalFlushList = [10, 11, 12, 13, 14];
+    const cardSample = [
+      { suit: "diamonds", rank: 10 },
+      { suit: "diamonds", rank: "Queen" },
+      { suit: "diamonds", rank: "King" },
+      { suit: "diamonds", rank: "Jack" },
+      { suit: "diamonds", rank: "Ace" },
+    ];
+    console.log("normal cards", this.cards);
+    console.log("royal flush", cardSample);
 
-    const formatted = this.cards.map((c) => {
-      let actualRank: number | string;
-      if (c.rank === "Jack") {
-        actualRank = 11;
-      } else if (c.rank === "Queen") {
-        actualRank = 12;
-      } else if (c.rank === "King") {
-        actualRank = 13;
-      } else if (c.rank === "Ace") {
-        actualRank = 14;
-      } else {
-        actualRank = c.rank;
-      }
-      return actualRank;
-    });
+    const formatted = formatHand(this.cards);
+    const formatted2 = formatHand(cardSample);
 
-    return _.sortBy(formatted);
+    console.log("thisIsNot", getSummaryOfHandBySuit(formatted));
+    console.log("thisRoyalFlush", getSummaryOfHandBySuit(formatted2));
+
+    /* return isRoyalFlush(formatted); */
+    return;
   }
 }
 
@@ -71,25 +75,14 @@ class Decks {
   }
 
   shuffleDecks(decks: CardType[]) {
-    let m = decks.length,
-      t,
-      i;
-
-    while (m) {
-      i = Math.floor(Math.random() * m--);
-      t = decks[m];
-      decks[m] = decks[i];
-      decks[i] = t;
-    }
-
-    return decks;
+    return _.shuffle(decks);
   }
 
   dealt(decks: CardType[]) {
-    const randomized = decks;
+    const cards = decks;
     const perChunk = 5;
 
-    const result: UserCardType[] = randomized.reduce(
+    const result: UserCardType[] = cards.reduce(
       (resultArray: UserCardType[], item, index) => {
         const chunkIndex = Math.floor(index / perChunk);
         if (!resultArray[chunkIndex]) {
@@ -124,13 +117,13 @@ const PokerProject = async () => {
     switch (command) {
       case "start":
         isGameStarted = true;
-        console.log(decks.length);
+        console.log(decks);
         PokerProject();
         break;
       case "shuffle":
         if (isGameStarted) {
           isShuffled = true;
-          console.log(newDecks.length);
+          console.log(newDecks);
         } else {
           console.log("Please start the game by type 'start'!");
         }
