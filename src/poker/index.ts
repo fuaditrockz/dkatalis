@@ -6,18 +6,11 @@ import {
   findHandBySuit,
   getSummaryOfHandBySuit,
   isSorted,
+  resultSortedSameRank,
 } from "./helpers";
+import { CardType, UserCardType, FormattedCardType } from "./types";
 import fakerator from "fakerator";
 import _ from "lodash";
-
-type CardType = {
-  rank: number | string;
-  suit: string;
-};
-type UserCardType = {
-  name: string;
-  cards: CardType[];
-};
 
 let isGameStarted: boolean = false;
 let isShuffled: boolean = false;
@@ -43,6 +36,11 @@ class RoyalFlush {
 
     const formatted = formatHand(this.cards);
     const formatted2 = formatHand(cardSample);
+
+    console.log(
+      "same rank",
+      resultSortedSameRank(formatted as FormattedCardType[])
+    );
 
     console.log("thisIsNot", getSummaryOfHandBySuit(formatted));
     console.log("thisRoyalFlush", getSummaryOfHandBySuit(formatted2));

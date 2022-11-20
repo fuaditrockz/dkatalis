@@ -1,5 +1,5 @@
 import { login, logout, deposit, transfer, UserDataType } from "../src/atm";
-import { errorColor, botColor } from "../src/helpers/colors";
+import { botColor } from "../src/helpers/colors";
 
 let mockedCustomerData: Array<UserDataType> = jest.mocked([]);
 let mockedCurrentUserData: UserDataType = jest.mocked({
