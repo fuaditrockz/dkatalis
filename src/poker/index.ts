@@ -1,4 +1,3 @@
-import { isEmpty } from "ramda";
 import { createQuestion } from "../helpers/rlInterface";
 import {
   formatHand,
@@ -77,9 +76,6 @@ class GamePlay {
   }
 
   deal() {
-    if (isEmpty(this.shuffledDecks)) {
-      this.shuffle();
-    }
     const perChunk = 5;
     this.allPlayerHands = this.shuffledDecks.reduce(
       (resultArray: UserCardType[], item, index) => {
@@ -99,7 +95,7 @@ class GamePlay {
     return;
   }
 
-  displayOwnHand() {
+  private displayOwnHand() {
     const table = new Table({
       head: ["Suit", "Rank"],
       colWidths: [15, 20],
@@ -132,8 +128,8 @@ class GamePlay {
 
       switch (this.answered) {
         case "shuffle":
-          if (!isEmpty(this.shuffledDecks) && !isEmpty(this.allPlayerHands)) {
-            OutputWording("warning shuffle");
+          if (this.shuffledDecks.length > 0 && this.allPlayerHands.length > 0) {
+            OutputWording("warning_shuffle");
             this.start(false);
           } else {
             this.shuffle();
@@ -142,18 +138,26 @@ class GamePlay {
           }
           break;
         case "deal":
-          if (!isEmpty(this.allPlayerHands) && !isEmpty(this.shuffledDecks)) {
+          if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
             OutputWording("deal", {
               name: this.allPlayerHands[0].name,
               tableOfHand: this.displayOwnHand().toString(),
             });
             this.start(false);
           } else {
+            this.shuffle();
             this.deal();
             OutputWording("deal", {
               name: this.allPlayerHands[0].name,
               tableOfHand: this.displayOwnHand().toString(),
             });
+            this.start(false);
+          }
+          break;
+        case "get hand rank":
+          if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
+            console.log("Your hand rank show here!");
+          } else {
             this.start(false);
           }
           break;
@@ -167,7 +171,7 @@ class GamePlay {
           PokerProject();
           break;
         default:
-          OutputWording("not found");
+          OutputWording("not_found");
           this.start(false);
           break;
       }
@@ -183,7 +187,7 @@ const PokerProject = async () => {
     const user_name: any = await typeResultByUser("Enter your name:");
 
     if (user_name) {
-      OutputWording("first play", { user_name });
+      OutputWording("first_play", { user_name });
       const answered: any = await typeResultByUser(">");
       const newGamePlay = new GamePlay(user_name);
 
@@ -192,12 +196,12 @@ const PokerProject = async () => {
           newGamePlay.start(true);
           break;
         default:
-          OutputWording("not found");
+          OutputWording("not_found");
           PokerProject();
           break;
       }
     } else {
-      OutputWording("warning name");
+      OutputWording("warning_name");
       PokerProject();
     }
   } catch (error) {

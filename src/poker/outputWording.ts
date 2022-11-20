@@ -2,7 +2,7 @@ import { errorColor, botColor } from "../helpers/colors";
 
 const OutputWording = (cases: string, data?: any) => {
   switch (cases) {
-    case "first play":
+    case "first_play":
       console.log(
         botColor(
           `Hi ${data.user_name}, Please type:\n> ${errorColor(
@@ -26,7 +26,8 @@ const OutputWording = (cases: string, data?: any) => {
       break;
     case "shuffle":
       console.log(botColor("52 cards has been shuffled."));
-    case "warning shuffle":
+      break;
+    case "warning_shuffle":
       console.log(
         errorColor(
           `(!) Can't shuffle the cards anymore!\nYou have to restart the game from the beginning by typing: ${botColor(
@@ -53,10 +54,10 @@ const OutputWording = (cases: string, data?: any) => {
         )
       );
       break;
-    case "warning name":
+    case "warning_name":
       console.log(errorColor("(!) Please insert your name properly!"));
       break;
-    case "not found":
+    case "not_found":
       console.log(errorColor(`(!) Command not found!`));
       break;
     default:
