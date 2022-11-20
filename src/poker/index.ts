@@ -2,50 +2,16 @@ import { createQuestion } from "../helpers/rlInterface";
 import {
   formatHand,
   findHandBySuit,
-  getSummaryOfHandBySuit,
-  isSorted,
+  isSortedPerfectly,
   resultSortedSameRank,
+  sortedHand,
+  getSummaryOfHand,
 } from "./helpers";
-import { CardType, UserCardType, FormattedCardType } from "./types";
+import { CardType, UserCardType, FormattedCardType, Suits } from "./types";
 import OutputWording from "./outputWording";
 import fakerator from "fakerator";
 import _ from "lodash";
 import Table from "cli-table";
-
-class RoyalFlush {
-  name: string;
-  cards: CardType[];
-  constructor(hands: UserCardType) {
-    this.name = hands.name;
-    this.cards = hands.cards;
-  }
-
-  isRoyalFlush() {
-    const cardSample = [
-      { suit: "diamonds", rank: 10 },
-      { suit: "diamonds", rank: "Queen" },
-      { suit: "diamonds", rank: "King" },
-      { suit: "diamonds", rank: "Jack" },
-      { suit: "diamonds", rank: "Ace" },
-    ];
-    console.log("normal cards", this.cards);
-    console.log("royal flush", cardSample);
-
-    const formatted = formatHand(this.cards);
-    const formatted2 = formatHand(cardSample);
-
-    console.log(
-      "same rank",
-      resultSortedSameRank(formatted as FormattedCardType[])
-    );
-
-    console.log("thisIsNot", getSummaryOfHandBySuit(formatted));
-    console.log("thisRoyalFlush", getSummaryOfHandBySuit(formatted2));
-
-    /* return isRoyalFlush(formatted); */
-    return;
-  }
-}
 
 const typeResultByUser = (question: string) => {
   return createQuestion(`${question} `);
@@ -157,6 +123,95 @@ class GamePlay {
         case "get hand rank":
           if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
             console.log("Your hand rank show here!");
+            let cardSample: CardType[] = [
+              { suit: "diamonds", rank: 10 },
+              { suit: "diamonds", rank: "Queen" },
+              { suit: "diamonds", rank: "King" },
+              { suit: "diamonds", rank: "Jack" },
+              { suit: "diamonds", rank: "Ace" },
+            ];
+            /* cardSample = [
+              { suit: "diamonds", rank: 7 },
+              { suit: "diamonds", rank: 8 },
+              { suit: "diamonds", rank: 9 },
+              { suit: "diamonds", rank: 10 },
+              { suit: "diamonds", rank: "Jack" },
+            ]; */
+            /* cardSample = [
+              { suit: "hearts", rank: 7 },
+              { suit: "spades", rank: 7 },
+              { suit: "clubs", rank: 7 },
+              { suit: "diamonds", rank: 7 },
+              { suit: "diamonds", rank: "Jack" },
+            ]; */
+            /* cardSample = [
+              { suit: "hearts", rank: 7 },
+              { suit: "spades", rank: 7 },
+              { suit: "clubs", rank: 7 },
+              { suit: "diamonds", rank: "Jack" },
+              { suit: "hearts", rank: "Jack" },
+            ]; */
+            /* cardSample = [
+              { suit: "hearts", rank: 7 },
+              { suit: "hearts", rank: 8 },
+              { suit: "hearts", rank: 2 },
+              { suit: "hearts", rank: "Jack" },
+              { suit: "hearts", rank: "King" },
+            ]; */
+            /* cardSample = [
+              { suit: "diamonds", rank: 3 },
+              { suit: "hearts", rank: 4 },
+              { suit: "spades", rank: 5 },
+              { suit: "diamonds", rank: 6 },
+              { suit: "clubs", rank: 7 },
+            ]; */
+            /* cardSample = [
+              { suit: "diamonds", rank: 9 },
+              { suit: "hearts", rank: 9 },
+              { suit: "spades", rank: 9 },
+              { suit: "diamonds", rank: 6 },
+              { suit: "clubs", rank: 7 },
+            ]; */
+            /* cardSample = [
+              { suit: "diamonds", rank: 4 },
+              { suit: "hearts", rank: 4 },
+              { suit: "spades", rank: "Jack" },
+              { suit: "diamonds", rank: "Jack" },
+              { suit: "clubs", rank: 7 },
+            ]; */
+            /* cardSample = [
+              { suit: "diamonds", rank: 10 },
+              { suit: "hearts", rank: 10 },
+              { suit: "spades", rank: 2 },
+              { suit: "diamonds", rank: 7 },
+              { suit: "clubs", rank: 9 },
+            ]; */
+            cardSample = this.allPlayerHands[0].cards;
+            const formattedHand = formatHand(cardSample);
+            const findHandBySuit1 = findHandBySuit(cardSample, Suits.Hearts);
+            const sortedHand1 = sortedHand(
+              formattedHand as FormattedCardType[]
+            );
+            const isSorted1 = isSortedPerfectly(
+              formattedHand as FormattedCardType[]
+            );
+            const resultSortedSameRank1 = resultSortedSameRank(
+              formattedHand as FormattedCardType[]
+            );
+
+            const summary = await getSummaryOfHand(
+              formattedHand as FormattedCardType[]
+            );
+
+            console.log("Test", summary);
+
+            console.log({
+              formattedHand,
+              findHandBySuit1,
+              sortedHand1,
+              isSorted1,
+              resultSortedSameRank1,
+            });
           } else {
             this.start(false);
           }
