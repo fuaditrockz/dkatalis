@@ -21,6 +21,7 @@ export enum Suits {
 }
 
 export type RankSummaryType = {
+  name: string;
   rank: string;
   description: string;
   matchCards: CardType[];

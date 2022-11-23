@@ -79,6 +79,17 @@ class GamePlay {
     return table;
   }
 
+  private displayRankOfPlayers(ranks: RankSummaryType[]) {
+    const table = new Table({
+      head: ["No", "Name", "Score", "Rank"],
+      colWidths: [5, 20, 10, 15],
+    });
+    ranks.map((c, i) => {
+      table.push([(i + 1).toString(), c.name, c.score.toString(), c.rank]);
+    });
+    return table;
+  }
+
   async start(isGameStarted: boolean) {
     const { decks } = this;
     try {
@@ -133,7 +144,8 @@ class GamePlay {
               const promises = this.allPlayerHands.map(async (player) => {
                 const formattedHand = formatHand(player.cards);
                 const summary = await getSummaryOfHand(
-                  formattedHand as FormattedCardType[]
+                  formattedHand as FormattedCardType[],
+                  player.name
                 );
                 return summary;
               });
@@ -143,15 +155,18 @@ class GamePlay {
               getAllPlayersRank()
             );
 
-            console.log(result);
+            const sortedResult = result.sort(
+              (a: RankSummaryType, b: RankSummaryType) =>
+                (b.score as number) - (a.score as number)
+            );
+
+            OutputWording("battle", {
+              name: this.allPlayerHands[0].name,
+              tableOfHand: this.displayRankOfPlayers(sortedResult).toString(),
+            });
             this.start(false);
           } else {
-            this.shuffle();
-            this.deal();
-            OutputWording("deal", {
-              name: this.allPlayerHands[0].name,
-              tableOfHand: this.displayOwnHand().toString(),
-            });
+            OutputWording("warning_battle");
             this.start(false);
           }
           break;

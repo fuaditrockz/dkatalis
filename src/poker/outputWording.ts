@@ -54,6 +54,22 @@ const OutputWording = (cases: string, data?: any) => {
         )
       );
       break;
+    case "battle":
+      console.log(botColor(`Hi, ${data.name}!`));
+      console.log(botColor(`Your rank is: 10`));
+      console.log(botColor(data.tableOfHand));
+      break;
+    case "warning_battle":
+      console.log(
+        errorColor(
+          `(!) Can't get score of the player for now\nPlease type:\n> ${errorColor(
+            "deal"
+          )}: to get your cards(Hand) or see your cards(Hand)\n> ${errorColor(
+            "shuffle"
+          )}: to get your own lucky before cards dealt`
+        )
+      );
+      break;
     case "warning_name":
       console.log(errorColor("(!) Please insert your name properly!"));
       break;

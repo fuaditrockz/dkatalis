@@ -93,16 +93,16 @@ export const getScoreBySuit = (hand: FormattedCardType[]) => {
   hand.map((c) => {
     switch (c.suit) {
       case Suits.Spades:
-        score += 40;
+        score += 8;
         break;
       case Suits.Hearts:
-        score += 30;
+        score += 6;
         break;
       case Suits.Diamonds:
-        score += 20;
+        score += 4;
         break;
       case Suits.Clubs:
-        score += 10;
+        score += 2;
         break;
       default:
         score += 0;
@@ -123,7 +123,7 @@ export const getScoreByRank = (hand: FormattedCardType[]) => {
 export const royalFlushChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
     const sortedCards = sortedHand(hand);
-    const bonusRankScore = 600;
+    const bonusRankScore = 1000;
     const scoreBySuit = getScoreBySuit(hand);
     const scoreByRank = getScoreByRank(hand);
 
@@ -147,7 +147,7 @@ export const royalFlushChecking = (hand: FormattedCardType[]) =>
 
 export const straightFlushChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
-    const bonusRankScore = 500;
+    const bonusRankScore = 900;
     const scoreBySuit = getScoreBySuit(hand);
     const scoreByRank = getScoreByRank(hand);
 
@@ -173,7 +173,7 @@ export const fourOfAKindChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
     const valueThatHasSameRank = resultSortedSameRank(hand);
     const isSameRankMoreThanOne = valueThatHasSameRank.length > 1;
-    const bonusRankScore = 400;
+    const bonusRankScore = 800;
     const scoreBySuit = getScoreBySuit(hand);
     const scoreByRank = getScoreByRank(hand);
 
@@ -204,7 +204,7 @@ export const fourOfAKindChecking = (hand: FormattedCardType[]) =>
 export const fullHouseChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
     const valueThatHasSameRank = resultSortedSameRank(hand);
-    const bonusRankScore = 300;
+    const bonusRankScore = 700;
 
     const scoreByRank = getScoreByRank(hand);
     const scoreBySuit = getScoreBySuit(hand);
@@ -231,7 +231,7 @@ export const fullHouseChecking = (hand: FormattedCardType[]) =>
 
 export const flushChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
-    const bonusRankScore = 250;
+    const bonusRankScore = 600;
     const scoreByRank = getScoreByRank(hand);
     const scoreBySuit = getScoreBySuit(hand);
 
@@ -251,7 +251,7 @@ export const flushChecking = (hand: FormattedCardType[]) =>
 
 export const straightChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
-    const bonusRankScore = 200;
+    const bonusRankScore = 500;
     const scoreByRank = getScoreByRank(hand);
     const scoreBySuit = getScoreBySuit(hand);
     if (isSortedPerfectly(hand)) {
@@ -270,7 +270,7 @@ export const straightChecking = (hand: FormattedCardType[]) =>
 
 export const threeOfAKindChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
-    const bonusRankScore = 150;
+    const bonusRankScore = 400;
     const scoreByRank = getScoreByRank(hand);
     const scoreBySuit = getScoreBySuit(hand);
 
@@ -306,7 +306,7 @@ export const threeOfAKindChecking = (hand: FormattedCardType[]) =>
 
 export const twoPairsChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
-    const bonusRankScore = 100;
+    const bonusRankScore = 300;
     const scoreByRank = getScoreByRank(hand);
     const scoreBySuit = getScoreBySuit(hand);
 
@@ -344,7 +344,7 @@ export const twoPairsChecking = (hand: FormattedCardType[]) =>
 
 export const pairChecking = (hand: FormattedCardType[]) =>
   new Promise((resolve, reject) => {
-    const bonusRankScore = 50;
+    const bonusRankScore = 200;
     const scoreByRank = getScoreByRank(hand);
     const scoreBySuit = getScoreBySuit(hand);
 
@@ -380,7 +380,10 @@ export const pairChecking = (hand: FormattedCardType[]) =>
     }
   });
 
-export const getSummaryOfHand = async (hand: FormattedCardType[]) => {
+export const getSummaryOfHand = async (
+  hand: FormattedCardType[],
+  name?: string
+) => {
   const promises = [
     royalFlushChecking,
     straightFlushChecking,
@@ -401,6 +404,7 @@ export const getSummaryOfHand = async (hand: FormattedCardType[]) => {
         const scoreByRank = getScoreByRank(hand);
         const scoreBySuit = getScoreBySuit(hand);
         result = {
+          name,
           rank: "Nothing",
           description:
             "Any 5 cards that does not arrange the any of the above hands. If there are multiple Nothings in a game, the hand with the highest rank wins. If they are the same rank, the highest suit wins.",
@@ -411,7 +415,10 @@ export const getSummaryOfHand = async (hand: FormattedCardType[]) => {
         return "this is Nothing";
       })
       .catch((err) => {
-        result = err;
+        result = {
+          name,
+          ...err,
+        };
         return err;
       });
 
@@ -421,13 +428,24 @@ export const getSummaryOfHand = async (hand: FormattedCardType[]) => {
   }
 };
 
+export const sortedRankOfPlayers = (summary: RankSummaryType[]) => {
+  const sortedResult = summary.sort(
+    (a: RankSummaryType, b: RankSummaryType) =>
+      (b.score as number) - (a.score as number)
+  );
+
+  return sortedResult;
+};
+
 export const getAllPlayersRank = async (allPlayerHands: UserCardType[]) => {
-  const promises = allPlayerHands.map(async (player) => {
-    const formattedHand = formatHand(player.cards);
-    const summary = await getSummaryOfHand(
-      formattedHand as FormattedCardType[]
-    );
-    return summary;
-  });
-  return promises;
+  const RanksSummaryPromise: () => Promise<RankSummaryType>[] = () =>
+    allPlayerHands.map(async (player) => {
+      const formattedHand = formatHand(player.cards);
+      const summary = await getSummaryOfHand(
+        formattedHand as FormattedCardType[]
+      );
+      return summary;
+    });
+  const result: RankSummaryType[] = await Promise.all(RanksSummaryPromise());
+  return result;
 };
