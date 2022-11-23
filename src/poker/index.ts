@@ -1,18 +1,9 @@
 import { createQuestion } from "../helpers/rlInterface";
-import {
-  formatHand,
-  findHandBySuit,
-  isSortedPerfectly,
-  resultSortedSameRank,
-  sortedHand,
-  getSummaryOfHand,
-  getScoreBySuit,
-} from "./helpers";
+import { formatHand, getSummaryOfHand } from "./helpers";
 import {
   CardType,
   UserCardType,
   FormattedCardType,
-  Suits,
   RankSummaryType,
 } from "./types";
 import OutputWording from "./outputWording";
@@ -68,14 +59,20 @@ class GamePlay {
     return;
   }
 
-  private displayOwnHand() {
+  private displayOwnHand(cards?: CardType[]) {
     const table = new Table({
       head: ["Suit", "Rank"],
       colWidths: [15, 20],
     });
-    this.allPlayerHands[0].cards.map((c) => {
-      table.push([c.suit, c.rank.toString()]);
-    });
+    if (!cards) {
+      this.allPlayerHands[0].cards.map((c) => {
+        table.push([c.suit, c.rank.toString()]);
+      });
+    } else {
+      cards.map((c) => {
+        table.push([c.suit, c.rank.toString()]);
+      });
+    }
     return table;
   }
 
@@ -88,6 +85,17 @@ class GamePlay {
       table.push([(i + 1).toString(), c.name, c.score.toString(), c.rank]);
     });
     return table;
+  }
+
+  private async getMySummary() {
+    const cards = this.allPlayerHands[0].cards;
+    const formattedHand = formatHand(cards);
+
+    const summary = await getSummaryOfHand(
+      formattedHand as FormattedCardType[],
+      this.allPlayerHands[0].name
+    );
+    return summary;
   }
 
   async start(isGameStarted: boolean) {
@@ -140,6 +148,7 @@ class GamePlay {
           break;
         case "battle":
           if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
+            const mySummary = await this.getMySummary();
             const getAllPlayersRank = () => {
               const promises = this.allPlayerHands.map(async (player) => {
                 const formattedHand = formatHand(player.cards);
@@ -163,6 +172,8 @@ class GamePlay {
             OutputWording("battle", {
               name: this.allPlayerHands[0].name,
               tableOfHand: this.displayRankOfPlayers(sortedResult).toString(),
+              yourRank:
+                sortedResult.findIndex((el) => el.name === mySummary.name) + 1,
             });
             this.start(false);
           } else {
@@ -172,85 +183,18 @@ class GamePlay {
           break;
         case "get hand rank":
           if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
-            console.log("Your hand rank show here!");
-            let cardSample: CardType[] = [
-              { suit: "diamonds", rank: 10 },
-              { suit: "diamonds", rank: "Queen" },
-              { suit: "diamonds", rank: "King" },
-              { suit: "diamonds", rank: "Jack" },
-              { suit: "diamonds", rank: "Ace" },
-            ];
-            /* cardSample = [
-              { suit: "diamonds", rank: 7 },
-              { suit: "diamonds", rank: 8 },
-              { suit: "diamonds", rank: 9 },
-              { suit: "diamonds", rank: 10 },
-              { suit: "diamonds", rank: "Jack" },
-            ]; */
-            /* cardSample = [
-              { suit: "hearts", rank: 7 },
-              { suit: "spades", rank: 7 },
-              { suit: "clubs", rank: 7 },
-              { suit: "diamonds", rank: 7 },
-              { suit: "diamonds", rank: "Jack" },
-            ]; */
-            /* cardSample = [
-              { suit: "hearts", rank: 7 },
-              { suit: "spades", rank: 7 },
-              { suit: "clubs", rank: 7 },
-              { suit: "diamonds", rank: "Jack" },
-              { suit: "hearts", rank: "Jack" },
-            ]; */
-            /* cardSample = [
-              { suit: "hearts", rank: 7 },
-              { suit: "hearts", rank: 8 },
-              { suit: "hearts", rank: 2 },
-              { suit: "hearts", rank: "Jack" },
-              { suit: "hearts", rank: "King" },
-            ]; */
-            /* cardSample = [
-              { suit: "diamonds", rank: 3 },
-              { suit: "hearts", rank: 4 },
-              { suit: "spades", rank: 5 },
-              { suit: "diamonds", rank: 6 },
-              { suit: "clubs", rank: 7 },
-            ]; */
-            /* cardSample = [
-              { suit: "diamonds", rank: 9 },
-              { suit: "hearts", rank: 9 },
-              { suit: "spades", rank: 9 },
-              { suit: "diamonds", rank: 6 },
-              { suit: "clubs", rank: 7 },
-            ]; */
-            /* cardSample = [
-              { suit: "diamonds", rank: 4 },
-              { suit: "hearts", rank: 4 },
-              { suit: "spades", rank: "Jack" },
-              { suit: "diamonds", rank: "Jack" },
-              { suit: "clubs", rank: 7 },
-            ]; */
-            /* cardSample = [
-              { suit: "diamonds", rank: 10 },
-              { suit: "hearts", rank: 10 },
-              { suit: "spades", rank: 2 },
-              { suit: "diamonds", rank: 7 },
-              { suit: "clubs", rank: 9 },
-            ]; */
-            cardSample = this.allPlayerHands[0].cards;
-            const formattedHand = formatHand(cardSample);
-
-            const summary = await getSummaryOfHand(
-              formattedHand as FormattedCardType[]
-            );
-
-            console.log("Test", summary);
-            console.log(
-              "Score",
-              getScoreBySuit(formattedHand as FormattedCardType[])
-            );
-
+            const summary = await this.getMySummary();
+            const { rank, score, matchCards, extraCards } = summary;
+            OutputWording("get_hand_rank", {
+              rank,
+              score,
+              matchCards,
+              tableOfMatch: this.displayOwnHand(matchCards).toString(),
+              tableOfUnmatch: this.displayOwnHand(extraCards).toString(),
+            });
             this.start(false);
           } else {
+            OutputWording("warning_get_hand_rank");
             this.start(false);
           }
           break;

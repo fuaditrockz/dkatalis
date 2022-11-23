@@ -10,6 +10,7 @@ const OutputWording = (cases: string, data?: any) => {
           )}: start the game`
         )
       );
+      console.log("");
       break;
     case "start":
       console.log(
@@ -23,9 +24,12 @@ const OutputWording = (cases: string, data?: any) => {
           )}: to get your own lucky before cards dealt`
         )
       );
+      console.log("");
       break;
     case "shuffle":
       console.log(botColor("52 cards has been shuffled."));
+      console.log(botColor(`Type ${errorColor("deal")} to get your card.`));
+      console.log("");
       break;
     case "warning_shuffle":
       console.log(
@@ -34,14 +38,27 @@ const OutputWording = (cases: string, data?: any) => {
             "reset"
           )}, or to continue the game please type:\n> ${botColor(
             "battle"
-          )}: to battle your card to other players`
+          )}: to battle your card to other players\n> ${botColor(
+            "get hand rank"
+          )}: to know your hand now before battle`
         )
       );
+      console.log("");
       break;
     case "deal":
       console.log(botColor(`Hi, ${data.name}!`));
       console.log(botColor(`Your hand:`));
       console.log(botColor(data.tableOfHand));
+      console.log(
+        botColor(
+          `To continue the game please type:\n> ${errorColor(
+            "battle"
+          )}: to battle your card to other players\n> ${errorColor(
+            "get hand rank"
+          )}: to know your hand now before battle`
+        )
+      );
+      console.log("");
       break;
     case "reset":
       console.log(botColor("END-------END"));
@@ -53,31 +70,71 @@ const OutputWording = (cases: string, data?: any) => {
           )} to start the game. Will be some of commands that you can follow to play the game, at the final the score will be announced.\n♤ ♥ ♢ ♧ ♤ ♡ ♢ ♧`
         )
       );
+      console.log("");
       break;
     case "battle":
       console.log(botColor(`Hi, ${data.name}!`));
-      console.log(botColor(`Your rank is: 10`));
+      console.log(botColor(`Your rank is: ${data.yourRank}`));
       console.log(botColor(data.tableOfHand));
+      console.log(
+        botColor(
+          `Please type:\n> ${errorColor("reset")}: to start the game back again`
+        )
+      );
+      console.log("");
       break;
     case "warning_battle":
       console.log(
         errorColor(
-          `(!) Can't get score of the player for now\nPlease type:\n> ${errorColor(
+          `(!) Can't get score of the players for now\nPlease type:\n> ${botColor(
             "deal"
-          )}: to get your cards(Hand) or see your cards(Hand)\n> ${errorColor(
+          )}: to get your cards(Hand) or see your cards(Hand)\n> ${botColor(
             "shuffle"
           )}: to get your own lucky before cards dealt`
         )
       );
+      console.log("");
+      break;
+    case "get_hand_rank":
+      console.log(botColor(`Your get "${data.rank}"`));
+      console.log(botColor(`Your score: ${data.score}`));
+      console.log(botColor(`There are ${data.matchCards.length} matched`));
+      console.log(botColor(`Match Cards:\n` + data.tableOfMatch));
+      console.log(botColor(`Unmatch Cards:\n` + data.tableOfUnmatch));
+      console.log(
+        botColor(
+          `Are you sure to continue the game?\n> ${errorColor(
+            "battle"
+          )}: to continue the battle\n> ${errorColor(
+            "reset"
+          )}: to start the game back again`
+        )
+      );
+      console.log("");
+      break;
+    case "warning_get_hand_rank":
+      console.log(
+        errorColor(
+          `(!) Can't get your scor for now\nPlease type:\n> ${botColor(
+            "deal"
+          )}: to get your cards(Hand) or see your cards(Hand)\n> ${botColor(
+            "shuffle"
+          )}: to get your own lucky before cards dealt`
+        )
+      );
+      console.log("");
       break;
     case "warning_name":
       console.log(errorColor("(!) Please insert your name properly!"));
+      console.log("");
       break;
     case "not_found":
       console.log(errorColor(`(!) Command not found!`));
+      console.log("");
       break;
     default:
       console.log("Nothing");
+      console.log("");
       break;
   }
 };
