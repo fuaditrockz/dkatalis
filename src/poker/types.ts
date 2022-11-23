@@ -19,3 +19,11 @@ export enum Suits {
   Clubs = "clubs",
   Diamonds = "diamonds",
 }
+
+export type RankSummaryType = {
+  rank: string;
+  description: string;
+  matchCards: CardType[];
+  extraCards: CardType[];
+  score: number;
+};

@@ -6,8 +6,15 @@ import {
   resultSortedSameRank,
   sortedHand,
   getSummaryOfHand,
+  getScoreBySuit,
 } from "./helpers";
-import { CardType, UserCardType, FormattedCardType, Suits } from "./types";
+import {
+  CardType,
+  UserCardType,
+  FormattedCardType,
+  Suits,
+  RankSummaryType,
+} from "./types";
 import OutputWording from "./outputWording";
 import fakerator from "fakerator";
 import _ from "lodash";
@@ -120,6 +127,34 @@ class GamePlay {
             this.start(false);
           }
           break;
+        case "battle":
+          if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
+            const getAllPlayersRank = () => {
+              const promises = this.allPlayerHands.map(async (player) => {
+                const formattedHand = formatHand(player.cards);
+                const summary = await getSummaryOfHand(
+                  formattedHand as FormattedCardType[]
+                );
+                return summary;
+              });
+              return promises;
+            };
+            const result: RankSummaryType[] = await Promise.all(
+              getAllPlayersRank()
+            );
+
+            console.log(result);
+            this.start(false);
+          } else {
+            this.shuffle();
+            this.deal();
+            OutputWording("deal", {
+              name: this.allPlayerHands[0].name,
+              tableOfHand: this.displayOwnHand().toString(),
+            });
+            this.start(false);
+          }
+          break;
         case "get hand rank":
           if (this.allPlayerHands.length > 0 && this.shuffledDecks.length > 0) {
             console.log("Your hand rank show here!");
@@ -188,30 +223,18 @@ class GamePlay {
             ]; */
             cardSample = this.allPlayerHands[0].cards;
             const formattedHand = formatHand(cardSample);
-            const findHandBySuit1 = findHandBySuit(cardSample, Suits.Hearts);
-            const sortedHand1 = sortedHand(
-              formattedHand as FormattedCardType[]
-            );
-            const isSorted1 = isSortedPerfectly(
-              formattedHand as FormattedCardType[]
-            );
-            const resultSortedSameRank1 = resultSortedSameRank(
-              formattedHand as FormattedCardType[]
-            );
 
             const summary = await getSummaryOfHand(
               formattedHand as FormattedCardType[]
             );
 
             console.log("Test", summary);
+            console.log(
+              "Score",
+              getScoreBySuit(formattedHand as FormattedCardType[])
+            );
 
-            console.log({
-              formattedHand,
-              findHandBySuit1,
-              sortedHand1,
-              isSorted1,
-              resultSortedSameRank1,
-            });
+            this.start(false);
           } else {
             this.start(false);
           }
