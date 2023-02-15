@@ -1,4 +1,4 @@
-# DKatalis Project
+# Small Project
 
 ### Installation
 
